@@ -1,28 +1,29 @@
-$(document).ready(function () {
-    const expenseForm = $('#expense-form');
-    const expenseList = $('#expenses-list');
-    const totalExpenses = $('#total-expenses');
-    const editExpenseBtn = $('#editExpenseBtn');
-    const deleteExpenseBtn = $('#deleteExpenseBtn');
+document.addEventListener('DOMContentLoaded', function () {
+    const expenseForm = document.getElementById('expense-form');
+    const expenseList = document.getElementById('expenses-list');
+    const totalExpenses = document.getElementById('total-expenses');
+    const editExpenseBtn = document.getElementById('editExpenseBtn');
+    const deleteExpenseBtn = document.getElementById('deleteExpenseBtn');
 
     let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
 
     function updateExpenses() {
-        expenseList.html('');
+        expenseList.innerHTML = '';
         let total = 0;
-        expenses.forEach(function (expense, index) {
-            const expenseItem = $(`<div class="card mb-2">
+        expenses.forEach((expense, index) => {
+            const expenseItem = document.createElement('div');
+            expenseItem.className = 'card mb-2';
+            expenseItem.innerHTML = `
                 <div class="card-body">
                     <h5 class="card-title">${expense.category}</h5>
                     <p class="card-text">${expense.description}: ₹${expense.amount}</p>
                     <button class="btn btn-warning mr-2 edit-btn" data-index="${index}">Edit</button>
                     <button class="btn btn-danger delete-btn" data-index="${index}">Delete</button>
-                </div>
-            </div>`);
-            expenseList.append(expenseItem);
+                </div>`;
+            expenseList.appendChild(expenseItem);
             total += parseInt(expense.amount);
         });
-        totalExpenses.text('₹' + total);
+        totalExpenses.textContent = '₹' + total;
         localStorage.setItem('expenses', JSON.stringify(expenses));
     }
 
@@ -38,39 +39,39 @@ $(document).ready(function () {
 
     function editExpense(index) {
         const expense = expenses[index];
-        $('#category').val(expense.category);
-        $('#description').val(expense.description);
-        $('#amount').val(expense.amount);
-        editExpenseBtn.prop('disabled', false);
-        deleteExpenseBtn.prop('disabled', false);
-        editExpenseBtn.off('click').on('click', function () {
+        document.getElementById('category').value = expense.category;
+        document.getElementById('description').value = expense.description;
+        document.getElementById('amount').value = expense.amount;
+        editExpenseBtn.disabled = false;
+        deleteExpenseBtn.disabled = false;
+        editExpenseBtn.onclick = () => {
             expenses[index] = {
-                category: $('#category').val(),
-                description: $('#description').val(),
-                amount: $('#amount').val()
+                category: document.getElementById('category').value,
+                description: document.getElementById('description').value,
+                amount: document.getElementById('amount').value
             };
             updateExpenses();
             resetForm();
-        });
-        deleteExpenseBtn.off('click').on('click', function () {
+        };
+        deleteExpenseBtn.onclick = () => {
             deleteExpense(index);
             resetForm();
-        });
+        };
     }
 
     function resetForm() {
-        expenseForm.trigger('reset');
-        editExpenseBtn.prop('disabled', true);
-        deleteExpenseBtn.prop('disabled', true);
-        editExpenseBtn.off('click');
-        deleteExpenseBtn.off('click');
+        expenseForm.reset();
+        editExpenseBtn.disabled = true;
+        deleteExpenseBtn.disabled = true;
+        editExpenseBtn.onclick = null;
+        deleteExpenseBtn.onclick = null;
     }
 
-    expenseForm.submit(function (e) {
+    expenseForm.addEventListener('submit', function (e) {
         e.preventDefault();
-        const category = $('#category').val();
-        const description = $('#description').val();
-        const amount = $('#amount').val();
+        const category = document.getElementById('category').value;
+        const description = document.getElementById('description').value;
+        const amount = document.getElementById('amount').value;
         if (category.trim() && description.trim() && amount.trim()) {
             addExpense(category, description, amount);
             resetForm();
@@ -79,14 +80,14 @@ $(document).ready(function () {
         }
     });
 
-    expenseList.on('click', '.edit-btn', function () {
-        const index = $(this).data('index');
-        editExpense(index);
-    });
-
-    expenseList.on('click', '.delete-btn', function () {
-        const index = $(this).data('index');
-        deleteExpense(index);
+    expenseList.addEventListener('click', function (e) {
+        if (e.target.classList.contains('edit-btn')) {
+            const index = e.target.dataset.index;
+            editExpense(index);
+        } else if (e.target.classList.contains('delete-btn')) {
+            const index = e.target.dataset.index;
+            deleteExpense(index);
+        }
     });
 
     updateExpenses();
